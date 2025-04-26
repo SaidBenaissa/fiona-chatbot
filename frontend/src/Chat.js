@@ -86,12 +86,16 @@ const Chat = ({ error: initialError, response: initialResponse, references: init
             className={`message ${msg.sender === 'user' ? 'user-message' : 'bot-message'}`}
           >
             <div className="message-text">{msg.text}</div>
+            {/* Display references if they exist for bot messages */}
             {msg.sender === 'bot' && msg.references && msg.references.length > 0 && (
               <div className="message-references">
-                <strong>References:</strong>
+                <strong>Sources:</strong>
                 <ul>
                   {msg.references.map((ref, refIndex) => (
-                    <li key={refIndex}>{ref.metadata?.source || 'Unknown source'} (Score: {ref.score?.toFixed(2) || 'N/A'})</li>
+                    <li key={refIndex}>
+                      {ref.metadata?.source || 'Unknown source'} (Chunk {ref.metadata?.chunk_index ?? 'N/A'})
+                      {/* Optionally display ref.content snippet here too */}
+                    </li>
                   ))}
                 </ul>
               </div>

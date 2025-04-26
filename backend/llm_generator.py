@@ -16,13 +16,16 @@ def generate_answer(contexts: List[Dict[str, Any]], query: str) -> Dict[str, Any
     context_texts = [ctx.get('content', '') for ctx in contexts if isinstance(ctx, dict)]
     context = "\n".join(context_texts) # Join the extracted content strings
     try:
-        prompt = f"Based on the following context:\n\n{context}\n\nAnswer the question: {query}"
+        # Revised prompt to explicitly ask for extraction/listing of steps if relevant
+        prompt = f"Based on the following context, answer the question: {query}\n\nIf the question asks for steps or a list, please extract and list all relevant points from the context.\n\nContext:\n{context}"
         logger.info(f"Sending prompt to generator: {prompt[:500]}...")
-        # Increased max_length for potentially longer answers
-        response = generator(prompt, max_length=250, num_return_sequences=1)
-        logger.info(f"Received response from generator: {response}")
+        # Increased max_length for potentially longer answers or complex formatting
+        response = generator(prompt, max_length=512, num_return_sequences=1)
+        # --- Added Detailed Logging ---
+        logger.info(f"Raw response from generator pipeline: {response}")
+        # --- End Added Logging ---
 
-        if response and isinstance(response, list) and 'generated_text' in response[0]:
+        if response and isinstance(response, list) and len(response) > 0 and isinstance(response[0], dict) and 'generated_text' in response[0]: # Added checks for list length and dict type
             generated_text = response[0]['generated_text']
             logger.info(f"Extracted generated text: {generated_text}")
             # Return the generated text and the original context dictionaries as references

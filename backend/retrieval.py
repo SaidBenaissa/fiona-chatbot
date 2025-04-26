@@ -34,7 +34,10 @@ def search_embeddings(query: str, documents: List[Dict[str, Any]], embeddings_li
 
     max_similarity = np.max(similarities[0])
     logger.info(f"Max similarity: {max_similarity}")
-    RELEVANCE_THRESHOLD = 0.3
+    # Calculate a dynamic relevance threshold based on the top 10% of similarity scores
+    RELEVANCE_THRESHOLD = max(0.3, np.percentile(similarities[0], 90))
+    logger.info(f"Dynamic relevance threshold set to: {RELEVANCE_THRESHOLD}")
+
     if max_similarity < RELEVANCE_THRESHOLD:
         logger.info(f"Query is unrelated (max similarity {max_similarity:.4f} < {RELEVANCE_THRESHOLD}).")
         # Return structure expected by app.py
@@ -54,10 +57,12 @@ def search_embeddings(query: str, documents: List[Dict[str, Any]], embeddings_li
     for i, score in zip(top_indices, top_scores):
         if i < len(documents):
             doc = documents[i]
+            # Correctly access nested metadata
+            doc_metadata = doc.get('metadata', {})
             results.append({
-                "content": doc.get('content', 'Content not found'), # Get content safely
-                "metadata": {"source": doc.get('source', 'Unknown source')}, # Get source safely
-                "score": float(score) # Convert score to float
+                "content": doc.get('content', 'Content not found'),
+                "metadata": {"source": doc_metadata.get('source', 'Unknown source')}, # Get source from nested metadata
+                "score": float(score)
             })
         else:
             logger.warning(f"Index {i} out of bounds for documents list (length {len(documents)}).")

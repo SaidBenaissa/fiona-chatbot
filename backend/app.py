@@ -57,7 +57,7 @@ async def query(request: QueryRequest) -> Dict[str, Any]:
         return results[0] # Return the dictionary directly
     elif not results or not isinstance(results, list): # Handle unexpected empty or non-list results
          logger.warning(f"Search returned unexpected results: {results}")
-         return {"answer": "Could not find relevant information.", "references": []}
+         return {"answer": "Could not find relevant information."}
 
     # If related documents found (results is List[Dict[str, Any]])
     try:
@@ -67,20 +67,19 @@ async def query(request: QueryRequest) -> Dict[str, Any]:
         logger.info(f"Generated answer data: {answer_data}")
 
         # Ensure the response format is correct
-        if isinstance(answer_data, dict) and "answer" in answer_data and "references" in answer_data:
-             # Ensure references are in the expected format (List[Dict])
-             if not isinstance(answer_data["references"], list):
-                 logger.warning("LLM generator returned references in unexpected format, attempting to use original results.")
-                 answer_data["references"] = results # Fallback to original results
+        if isinstance(answer_data, dict) and "answer" in answer_data:
+             # Return the full dictionary including answer and references
              return answer_data
         else:
              logger.error(f"LLM generator returned unexpected format: {answer_data}")
-             # Return original results as references even if answer generation failed
-             return {"answer": "Error generating response.", "references": results}
+             # Fallback response if answer generation failed or format is wrong
+             # Include empty references for consistency
+             return {"answer": "Error generating response.", "references": []}
     except Exception as e:
         logger.error(f"Error during answer generation: {e}", exc_info=True)
-        # Return original results as references on exception
-        return {"answer": "An error occurred while generating the response.", "references": results}
+        # Fallback response on exception
+        # Include empty references for consistency
+        return {"answer": "An error occurred while generating the response.", "references": []}
 
 @app.get("/")
 async def root():
