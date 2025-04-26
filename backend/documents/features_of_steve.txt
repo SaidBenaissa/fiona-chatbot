@@ -1,0 +1,37 @@
+Features of Steve
+
+Welcome to the "Features of Steve" guide! This document outlines Steve's main features and how it can assist you.
+
+## Key Features
+
+1. **Multilingual Support**
+   - Chat with Steve in multiple European languages.
+
+2. **Research Assistance**
+   - Get help planning, managing, and completing research projects.
+
+3. **Document Analysis**
+   - Upload documents for quick insights and key information.
+
+4. **Real-Time Interaction**
+   - Enjoy fast and engaging responses.
+
+5. **Evidence-Based Answers**
+   - Trust answers backed by source references.
+
+6. **Custom Workflows**
+   - Personalize workflows to fit your needs.
+
+## FAQs
+
+**Q: Can Steve handle multiple languages?**  
+A: Yes, Steve uses advanced language models to communicate fluently in European languages.
+
+**Q: Can Steve help with research?**  
+A: Definitely! Steve offers guidance, answers questions, and analyzes documents for research.
+
+**Q: Is Steve good for teamwork?**  
+A: Yes, Steve supports collaborative workflows for team projects.
+
+**Q: How accurate are Steve's answers?**  
+A: Steve provides reliable answers with references to source documents.

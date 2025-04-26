@@ -1,0 +1,33 @@
+from fastapi import FastAPI
+
+from fastapi.middleware.cors import CORSMiddleware
+from document_loader import load_documents
+from embedding_manager import create_embeddings
+from retrieval import search_embeddings
+from llm_generator import generate_answer
+from models.query_model import QueryRequest, QueryResponse
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Adjust this as needed for production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.on_event("startup")
+async def startup_event():
+    load_documents()
+    create_embeddings()
+
+@app.post("/query", response_model=QueryResponse)
+async def query(request: QueryRequest):
+    results = search_embeddings(request.query)
+    answer = generate_answer(results)
+    return QueryResponse(answer=answer)
+
+@app.get("/")
+async def root():
+    return {"message": "Welcome to the Fiona Chatbot API!"}
