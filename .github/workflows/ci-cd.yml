@@ -18,8 +18,6 @@ jobs:
     strategy:
       matrix:
         node-version: [14, 16, 18]
-    strategy:
-      matrix:
         python-version: ['3.8', '3.9', '3.10']
 
     steps:
@@ -60,10 +58,7 @@ jobs:
     - name: Deploy with Docker Compose
       run: |
         docker-compose up --build -d
+
     - name: Cleanup unused Docker resources
       run: |
         docker system prune -f
-
-    - name: Deploy with Docker Compose
-      run: |
-        docker-compose up --build -d
