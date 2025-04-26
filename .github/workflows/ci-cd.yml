@@ -15,6 +15,12 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [14, 16, 18]
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10']
 
     steps:
     - name: Checkout code
@@ -22,33 +28,41 @@ jobs:
 
     - name: Set up Python
       uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
+    - name: Check for requirements.txt
+      run: |
+        if [ ! -f backend/requirements.txt ]; then
+          echo "Error: requirements.txt not found in backend directory."
+          exit 1
+        fi
 
     - name: Install backend dependencies
       run: |
         cd backend
         pip install -r requirements.txt
 
-    - name: Verify pytest installation
+    - name: Run backend tests
       run: |
         cd backend
-        python -m pytest --version
-
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '16'
-
-    - name: Install frontend dependencies
-      run: |
-        cd frontend
-        npm install
+        python -m pytest
 
     - name: Build frontend
       run: |
         cd frontend
         npm run build
+
+    - name: Check for docker-compose.yml
+      run: |
+        if [ ! -f docker-compose.yml ]; then
+          echo "Error: docker-compose.yml not found in the root directory."
+          exit 1
+        fi
+
+    - name: Deploy with Docker Compose
+      run: |
+        docker-compose up --build -d
+    - name: Cleanup unused Docker resources
+      run: |
+        docker system prune -f
 
     - name: Deploy with Docker Compose
       run: |
