@@ -38,6 +38,7 @@ jobs:
     - name: Build frontend
       run: |
         cd frontend
+        npm install
         npm run build
 
     - name: Check for docker-compose.yml
