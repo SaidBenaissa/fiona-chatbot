@@ -2,15 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    paths:
-      - "backend/documents/**"
-      - "**.py"
-      - "frontend/**"
   pull_request:
-    paths:
-      - "backend/documents/**"
-      - "**.py"
-      - "frontend/**"
 
 jobs:
   build-and-deploy:
