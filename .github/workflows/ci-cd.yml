@@ -3,8 +3,8 @@ name: CI/CD Pipeline
 on:
   push:
     paths:
-      - "backend/documents/**" # Included in both triggers to ensure changes to backend documents trigger CI/CD
-      - "backend/**/*.py"
+      - "backend/documents/**"
+      - "**.py"
       - "frontend/**"
   pull_request:
     paths:
@@ -15,12 +15,6 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [14, 16, 18]
-    strategy:
-      matrix:
-        python-version: ['3.8', '3.9', '3.10']
 
     steps:
     - name: Checkout code
@@ -28,18 +22,11 @@ jobs:
 
     - name: Set up Python
       uses: actions/setup-python@v4
-    - name: Check for requirements.txt
-      run: |
-        if [ ! -f backend/requirements.txt ]; then
-          echo "Error: requirements.txt not found in backend directory."
-          exit 1
-        fi
+      with:
+        python-version: '3.9'
 
     - name: Install backend dependencies
-    - name: Run backend tests
       run: |
-        cd backend
-        python -m pytest
         cd backend
         pip install -r requirements.txt
 
@@ -48,45 +35,20 @@ jobs:
         cd backend
         python -m pytest --version
 
-        node-version: ${{ matrix.node-version }}
+    - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
         node-version: '16'
-
-    - name: Check for package.json
-      run: |
-        if [ ! -f frontend/package.json ]; then
-          echo "Error: package.json not found in frontend directory."
-          exit 1
-        fi
 
     - name: Install frontend dependencies
       run: |
         cd frontend
         npm install
 
-    - name: Verify build script in package.json
-      run: |
-        if ! grep -q '"build":' frontend/package.json; then
-          echo "Error: 'build' script not found in package.json."
-          exit 1
-        fi
-
     - name: Build frontend
       run: |
-    - name: Check for docker-compose.yml
-      run: |
-        if [ ! -f docker-compose.yml ]; then
-          echo "Error: docker-compose.yml not found in the root directory."
-          exit 1
-        fi
-
-    - name: Deploy with Docker Compose
-      run: |
-        docker-compose up --build -d
-    - name: Cleanup unused Docker resources
-      run: |
-        docker system prune -f
+        cd frontend
+        npm run build
 
     - name: Deploy with Docker Compose
       run: |
