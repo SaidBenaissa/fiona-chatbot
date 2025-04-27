@@ -2,25 +2,8 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
-    volumes:
-      - ./backend:/app
-    ports:
-      - "8000:8000"
-    environment:
-      - PYTHONUNBUFFERED=1
-
+    image: sbenaissa/fiona-chatbot-backend:latest
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
-    volumes:
-      - ./frontend:/app
-    ports:
-      - "3000:3000"
-    environment:
-      - CHOKIDAR_USEPOLLING=true
-
-networks:
-  default:
-    driver: bridge
+    image: sbenaissa/fiona-chatbot-frontend:latest
