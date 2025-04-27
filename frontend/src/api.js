@@ -7,3 +7,6 @@ export const fetchData = async (endpoint, options = {}) => {
   }
   return response.json();
 };
+
+// Ensure `fetchData` is exported as the default export
+export default fetchData;
