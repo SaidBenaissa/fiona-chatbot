@@ -1,5 +1,5 @@
 fastapi
-uvicorn
+uvicorn[standard]
 sentence-transformers
 scikit-learn
 transformers
@@ -10,3 +10,7 @@ pytest
 langdetect
 googletrans==4.0.0-rc1
 deep-translator
+PyPDF2
+pdfplumber
+pytesseract
+pdf2image

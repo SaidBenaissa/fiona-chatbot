@@ -6,7 +6,6 @@ const Chat = ({ error: initialError, response: initialResponse, references: init
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-  const [language, setLanguage] = useState("English");
   const [currentError, setError] = useState(initialError);
   const chatEndRef = useRef(null);
 
@@ -28,7 +27,7 @@ const Chat = ({ error: initialError, response: initialResponse, references: init
 
     try {
       // *** This is the crucial part: Use apiClient.post ***
-      const response = await apiClient.post('/query', { query: currentInput, language: language });
+      const response = await apiClient.post('/query', { query: currentInput });
 
       if (response.data && response.data.answer) {
         const botMessage = { sender: 'bot', text: response.data.answer, references: response.data.references };
@@ -64,20 +63,8 @@ const Chat = ({ error: initialError, response: initialResponse, references: init
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
-  const handleLanguageChange = (e) => {
-    setLanguage(e.target.value);
-  };
-
   return (
     <div className="chat-container">
-      <div className="language-selector">
-        <label htmlFor="language">Language: </label>
-        <select id="language" value={language} onChange={handleLanguageChange}>
-          <option value="English">English</option>
-          <option value="French">French</option>
-          <option value="German">German</option>
-        </select>
-      </div>
 
       <div className="chat-history">
         {messages.map((msg, index) => (
@@ -93,8 +80,11 @@ const Chat = ({ error: initialError, response: initialResponse, references: init
                 <ul>
                   {msg.references.map((ref, refIndex) => (
                     <li key={refIndex}>
-                      {ref.metadata?.source || 'Unknown source'} (Chunk {ref.metadata?.chunk_index ?? 'N/A'})
-                      {/* Optionally display ref.content snippet here too */}
+                      {ref.metadata?.chunk_id ? ` (Chunk ID: ${ref.metadata.chunk_id})` : ''}
+                    
+                      {ref.generated_answer ? <div className="generated-answer">{ref.generated_answer}</div> : null}
+                      {/* Optionally display chunk index if available */}
+                      {/* {ref.metadata?.chunk_index ? ` (Chunk ${ref.metadata.chunk_index})` : ''} */}
                     </li>
                   ))}
                 </ul>

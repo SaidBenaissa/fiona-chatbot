@@ -2,7 +2,7 @@ import logging
 import numpy as np
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from document_loader import load_documents
+from document_loader import load_documents_from_directory
 from embedding_manager import create_embeddings # type: ignore
 from retrieval import search_embeddings # type: ignore
 from llm_generator import generate_answer
@@ -33,9 +33,23 @@ app_embeddings: np.ndarray = np.array([])  # type: ignore # Initialize as empty 
 async def startup_event():
     global loaded_docs, app_embeddings
     logger.info("Starting up the application...")
-    loaded_docs = load_documents()  # Now returns List[Dict[str, Any]]
+    # Adjust to handle the new return format from load_documents_from_directory
+    raw_docs = load_documents_from_directory("documents")
+    loaded_docs = [
+        {"filename": filename, "content": content, "metadata": metadata}
+        for filename, content, metadata in raw_docs
+    ]
+    # logger.info(f"Loaded documents are: {loaded_docs}") # Avoid logging potentially large content
     logger.info(f"Loaded {len(loaded_docs)} documents with metadata.")
-    app_embeddings = create_embeddings(loaded_docs)  # Expects List[Dict], returns np.ndarray
+    if not loaded_docs:
+        logger.warning("No documents were loaded successfully.")
+        app_embeddings = np.array([])
+        return
+
+    # Pass only content to create_embeddings if it expects List[str]
+    # Or adjust create_embeddings if it expects List[Dict]
+    # Assuming create_embeddings expects List[Dict] based on previous context
+    app_embeddings = create_embeddings(loaded_docs)  # Expects List[Dict], returns np.ndarray, 
     if app_embeddings.size == 0 and loaded_docs:  # Check if empty despite having docs
         logger.error("Embeddings creation failed or returned empty.")
     elif app_embeddings.size > 0:
@@ -72,6 +86,7 @@ async def query(request: QueryRequest) -> Dict[str, Any]:
 
     # If related documents found (results is List[Dict[str, Any]])
     try:
+        logger.info(f"Passing results to LLM for answer generation: {results}")
         answer_data = generate_answer(results, translated_query)
         logger.info(f"Generated answer data: {answer_data}")
 

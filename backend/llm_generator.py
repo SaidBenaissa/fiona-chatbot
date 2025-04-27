@@ -1,43 +1,67 @@
 import logging
-from transformers import pipeline
+import time
+from transformers.pipelines import pipeline
 from typing import List, Dict, Any
 
 # Configure logging for this module
 logger = logging.getLogger(__name__)
 
-# Use flan-t5-large which needs token to download (first time)
-generator = pipeline("text2text-generation", model="google/flan-t5-large", device="cpu")
+# Use flan-t5-base for potentially faster inference, set cpu usage 
+generator = pipeline("text2text-generation", model="google/flan-t5-base", device="cpu")
 
-# Modify function to accept list of dictionaries and the query
-def generate_answer(contexts: List[Dict[str, Any]], query: str) -> Dict[str, Any]:
-    logger.info(f"Generating answer for query '{query}' based on {len(contexts)} contexts.")
-    # Extract only the content for the prompt
-    # Ensure context is a string, handle potential missing 'content' key
-    context_texts = [ctx.get('content', '') for ctx in contexts if isinstance(ctx, dict)]
-    context = "\n".join(context_texts) # Join the extracted content strings
-    try:
-        # Revised prompt to explicitly ask for extraction/listing of steps if relevant
-        prompt = f"Based on the following context, answer the question: {query}\n\nIf the question asks for steps or a list, please extract and list all relevant points from the context.\n\nContext:\n{context}"
-        logger.info(f"Sending prompt to generator: {prompt[:500]}...")
-        # Increased max_length for potentially longer answers or complex formatting
-        response = generator(prompt, max_length=512, num_return_sequences=1)
-        # --- Added Detailed Logging ---
-        logger.info(f"Raw response from generator pipeline: {response}")
-        # --- End Added Logging ---
+# Use phi-2 for better performance, set cpu usage
+# generator = pipeline("text-generation", model="microsoft/phi-2", device="cpu")
 
-        if response and isinstance(response, list) and len(response) > 0 and isinstance(response[0], dict) and 'generated_text' in response[0]: # Added checks for list length and dict type
-            generated_text = response[0]['generated_text']
-            logger.info(f"Extracted generated text: {generated_text}")
-            # Return the generated text and the original context dictionaries as references
-            return {
-                "answer": generated_text,
-                "references": contexts # Pass the full context dicts back
-            }
-        else:
-            logger.error(f"Generator returned unexpected response format: {response}")
-            # Return original contexts even on error, so frontend might show sources
-            return {"answer": "Error processing model response.", "references": contexts}
-    except Exception as e:
-        logger.error(f"Error during text generation: {e}", exc_info=True)
-        # Return original contexts even on error
-        return {"answer": "An error occurred during text generation.", "references": contexts}
+
+def chunk_text(text: str, max_tokens: int) -> List[str]:
+    """Split text into chunks of a specified maximum token size."""
+    words: List[str] = text.split()
+    chunks: List[str] = []
+    current_chunk: List[str] = []
+    current_length: int = 0
+
+    for word in words:
+        word_length = len(word) + 1  # Account for space
+        if current_length + word_length > max_tokens:
+            chunks.append(" ".join(current_chunk))
+            current_chunk = []
+            current_length = 0
+        current_chunk.append(word)
+        current_length += word_length
+
+    if current_chunk:
+        chunks.append(" ".join(current_chunk))
+
+    return chunks
+
+# Define a default maximum context length - increased again
+DEFAULT_MAX_CONTEXT_LENGTH = 1000
+
+# Optimize LLM input by truncating contexts and adding performance logging
+def generate_answer(contexts: list, query: str) -> dict:
+    combined_context = "\n\n".join([ctx.get("content", "") for ctx in contexts])
+    combined_context = combined_context[:DEFAULT_MAX_CONTEXT_LENGTH]  # Truncate to max length
+
+    # Refined prompt for more detailed answers based *only* on context
+    prompt = f"Based *only* on the following context, please provide a detailed answer to the question.\n\nContext:\n{combined_context}\n\nQuestion: {query}\n\nDetailed Answer:"
+
+    logger.info(f"Prompt being sent to LLM: {prompt}") # Log the prompt
+    start_time = time.time()
+    # Increase max_length further and ensure truncation is enabled
+    response = generator(prompt, max_length=1500, num_return_sequences=1, truncation=True)
+    elapsed_time = time.time() - start_time
+    logger.info(f"LLM generation finished. Raw response: {response}") # Log raw response
+
+    logger.info(f"LLM generation took {elapsed_time:.2f} seconds.")
+
+    if isinstance(response, list) and len(response) > 0 and "generated_text" in response[0]:
+        generated_text = response[0]["generated_text"].strip()
+        logger.info(f"Generated text (stripped): '{generated_text}'") # Log stripped text
+        if not generated_text: # Check if the generated text is empty after stripping
+             logger.warning("LLM generated an empty response.")
+             return {"answer": "I found some relevant information, but couldn't formulate a detailed answer. Please try rephrasing.", "references": []}
+        # Return only the answer, references were removed previously
+        return {"answer": generated_text}
+    else:
+        logger.error("No valid response generated by the LLM or unexpected format.")
+        return {"answer": "No valid response generated.", "references": []}
