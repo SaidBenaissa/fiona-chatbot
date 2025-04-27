@@ -1,10 +1,9 @@
-import axios from 'axios';
+const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
 
-const apiClient = axios.create({
-  baseURL: 'http://localhost:8000',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-export default apiClient;
+export const fetchData = async (endpoint, options = {}) => {
+  const response = await fetch(`${API_BASE_URL}/${endpoint}`, options);
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  return response.json();
+};

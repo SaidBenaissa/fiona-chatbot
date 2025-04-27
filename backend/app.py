@@ -17,9 +17,10 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
+# Add CORS middleware to allow requests from the frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Adjust this as needed for production
+    allow_origins=["*"],  # Replace "*" with specific origins if needed
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

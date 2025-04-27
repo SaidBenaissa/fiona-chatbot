@@ -3,7 +3,22 @@ services:
     build:
       context: ./backend
     image: sbenaissa/fiona-chatbot-backend:latest
+    ports:
+      - "8000:8000"
+    networks:
+      - fiona-network
+
   frontend:
     build:
       context: ./frontend
     image: sbenaissa/fiona-chatbot-frontend:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_BACKEND_URL=http://backend:8000
+    networks:
+      - fiona-network
+
+networks:
+  fiona-network:
+    driver: bridge
