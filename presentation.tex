@@ -1,6 +1,9 @@
 \documentclass{beamer}
 \usepackage{graphicx}
 \usepackage{hyperref}
+\usepackage{pgfpages} % Enable presenter notes
+
+\setbeameroption{show notes on second screen=right}
 
 \title{FIONA Chatbot Application}
 \author{Said Benaissa}
@@ -11,21 +14,22 @@
 \frame{\titlepage}
 
 \begin{frame}{Preventing Hallucinations and Providing Evidence}
-    \begin{itemize}
-        \item FIONA retrieves content directly from preloaded source documents stored in the backend.
-        \item Embedding-based search using cosine similarity ensures accurate retrieval of relevant document chunks.
-        \item Responses are generated using the `flan-t5-large` language model, including references to source documents.
-        \item Prevents hallucinations by strictly relying on document embeddings and avoiding unsupported information.
-    \end{itemize}
+    The system uses Retrieval-Augmented Generation (RAG), where search_embeddings in retrieval.py retrieves 
+    relevant document chunks using cosine similarity, and generate_answer in llm_generator.py generates grounded responses with the flan-t5-large language model
+    \note{
+        The backend uses `SentenceTransformer` to create embeddings and `cosine similarity` for chunk retrieval. This ensures that responses are grounded in the source documents.
+    }
 \end{frame}
 
 \begin{frame}{CI/CD Pipeline for Document Changes}
     \begin{itemize}
-        \item Monitors changes in both code and documents.
         \item Automatically rebuilds embeddings when documents are updated using `embedding_manager.py`.
-        \item Redeploys the application to ensure up-to-date content and functionality.
-        \item Ensures seamless integration of new information into the chatbot.
+        \item Other changes trigger a full rebuild of the Docker image.
+        \item Ensures that the chatbot is always up-to-date with the latest information.
     \end{itemize}
+    \note{
+        The CI/CD pipeline is configured to detect changes in the `documents` folder and trigger the embedding rebuild process. This ensures that the chatbot always has the latest information.
+    }
 \end{frame}
 
 \begin{frame}{Deployment on Linux/Debian-based Systems}
@@ -35,26 +39,31 @@
         \item Scalable deployment for small to large-scale systems.
         \item Fully on-premise deployment ensures data privacy.
     \end{itemize}
+    \note{
+        Deployment is containerized using Docker. The `docker-compose.yml` file simplifies orchestration, making it easy to scale and deploy on various hardware configurations.
+    }
 \end{frame}
 
 \begin{frame}{Real-time User Interface}
     \begin{itemize}
-        \item Clean and modern design built with React.
-        \item Real-time responses to user queries in human language.
-        \item Displays references to source documents for transparency.
-        \item Visually appealing UI with responsive design for various devices.
+        \item Users can interact with the chatbot in real-time.
     \end{itemize}
-     \includegraphics[width=\textwidth]{ui-screenshot.png} % Replace with an actual screenshot
+    \includegraphics[width=\textwidth]{ui-screenshot.png}
+    \note{
+        The frontend uses `Chat.js` for the main interface and communicates with the backend via HTTP POST requests. Styling is managed with `Chat.css` and `styles.css`.
+    }
 \end{frame}
 
 \begin{frame}{Integration with Apache2 and PHP 8.x}
     \begin{itemize}
         \item Backend can be proxied through Apache2 for seamless integration.
-        \item Frontend served as static files compatible with PHP-based solutions (http://localhost:8080/index.php).
-        \item Supports integration with existing enterprise systems using PHP 8.x.
-        \item Ensures compatibility with legacy systems while maintaining modern features.
-        \item Utilizes Apache2's mod_rewrite for clean URL handling.
+        \item Frontend served as static files (build directly) with PHP existing code.
+        \item Supports integration with PHP 8.4.6.
+        \item Run chatbot integrated with existing PHP code: http://localhost:8080/index.php
     \end{itemize}
+    \note{
+        Apache2 acts as a reverse proxy for the backend, while the frontend is served as static files. This setup ensures compatibility with PHP-based enterprise systems.
+    }
 \end{frame}
 
 \end{document}

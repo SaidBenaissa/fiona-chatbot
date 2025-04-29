@@ -37,3 +37,7 @@ Fiona Chatbot is a full-stack FastAPI/React application for chat interactions us
 -   Backend API: `http://localhost:8000`
 -   Frontend App: `http://localhost:3000`
 -  Php apache integration: `http://localhost:8080/index.php`
+
+## Learn more
+Guide for Vector Embeddings
+https://youtu.be/NEreO2zlXDk?si=qTdK6Fr7us9d7E0U
